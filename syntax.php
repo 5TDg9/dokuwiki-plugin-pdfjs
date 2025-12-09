@@ -60,29 +60,41 @@ class syntax_plugin_pdfjs extends DokuWiki_Syntax_Plugin {
 
         list($params, $media) = explode('>', trim($match, '{}'), 2);
 
-        // handle media parameters (linkId and title)
-        list($link, $title) = explode('|', $media, 2);
+		// handle media parameters (linkId and title)
+		list($params, $media) = explode('>', trim($match, '{}'), 2);
 
-        list($idzoom, $display) = explode('?disp=', $link, 2);
-        $display = trim($display);
-        //get the display
-        if($display) {
-            if(in_array($display, $this->display_opts)) {
-                $opts['display'] = $display;
-            } else {
-                msg('pdfjs: unknown display: ' . $display, -1);
-            }
-        }
+		// $media hat die Form "id?zoom|title" oder "id|title" oder nur "id"
+		$parts = explode('|', $media, 2);
+		$link  = $parts[0] ?? '';
+		$title = $parts[1] ?? '';
 
-        //get the zoom
-        list($id, $zoom) = explode('?', $idzoom, 2);
-        if($zoom) {
-            if(in_array($zoom, $this->zoom_opts)) {
-                $opts['zoom'] = $zoom;
-            } else {
-                msg('pdfjs: unknown zoom: ' . $zoom, -1);
-            }
-        }
+		// $link kann z.B. "id?zoom" oder "id?zoom?disp=tab" etc. enthalten
+		$parts   = explode('?disp=', $link, 2);
+		$idzoom  = $parts[0] ?? '';
+		$display = isset($parts[1]) ? trim($parts[1]) : '';
+
+		// get the display
+		if ($display !== '') {
+			if (in_array($display, $this->display_opts)) {
+				$opts['display'] = $display;
+			} else {
+				msg('pdfjs: unknown display: ' . $display, -1);
+			}
+		}
+
+		// get the zoom
+		$parts = explode('?', $idzoom, 2);
+		$id    = $parts[0] ?? '';
+		$zoom  = $parts[1] ?? '';
+
+		if ($zoom !== '') {
+			if (in_array($zoom, $this->zoom_opts)) {
+				$opts['zoom'] = $zoom;
+			} else {
+				msg('pdfjs: unknown zoom: ' . $zoom, -1);
+			}
+		}
+
 
         // handle viewer parameters
         $params = trim(substr($params, strlen('pdfjs')));
